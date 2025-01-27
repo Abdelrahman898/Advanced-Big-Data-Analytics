@@ -3,12 +3,8 @@
 
 #### Dataset:  
 
-you can download the NYC taxi dataset from the [link](http://www.andresmh.com/nvctaxitrips/) then take  
-a sample from it. Each row of the file after the header represents a single taxi ride in CSV format. For  
-each ride, we have some attributes of the cab (a hashed version of the medallion number) as well as the  
-driver (a hashed version of the hack license, which is what licenses to drive taxis are called), some  
-temporal information about when the trip started and ended, and the longitude/latitude coordinates for  
-where the passenger(s) were picked up and dropped off.  
+you can download the NYC taxi dataset from the [link](http://www.andresmh.com/nvctaxitrips/) then take a sample from it. Each row of the file after the header represents a single taxi ride in CSV format. For  
+each ride, we have some attributes of the cab (a hashed version of the medallion number) as well as the  driver (a hashed version of the hack license, which is what licenses to drive taxis are called), some  temporal information about when the trip started and ended, and the longitude/latitude coordinates for where the passenger(s) were picked up and dropped off.  
 
 We are mainly interested in each Trip's:  
 
@@ -29,7 +25,7 @@ We need to compute:
 3. The number of trips that start in one borough and ended in another one  
 
 
-## Steps:  
+#### Steps:  
 
 To carry out this analysis, we need to deal with two types that data that come up all the time: temporal  
 data, such as dates and times, and geospatial information, like points of longitude and latitude and spatial boundaries.  
