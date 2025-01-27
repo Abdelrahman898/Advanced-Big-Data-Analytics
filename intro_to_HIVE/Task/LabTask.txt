@@ -1,0 +1,26 @@
+Lab Task:
+
+- We will use the data inside accounts.zip (Data contains customer accounts information of a telecommunication company)
+- Put the data inside HDFS
+- Table in HIVE should be created as an EXTERNAL table
+- Table schema in HIVE should be as follows:
+(
+cust_id INT,
+creationdate STRING,
+expirationDate STRING,
+fname STRING,
+lname STRING,
+address STRING,
+city STRING,
+state STRING,
+zipcode STRING
+)
+- Put the data inside the table
+- Create a new table from the previous table partitioned by state
+- Perform the following query on the partitioned table (state): Get the first name and the last name of all customers from "NV" state
+- Create a new table partitioned by state and city.
+- Perform the following query on the 3 tables regular table, partitioned table (state), and partitioned table (state, city): Retrieve the names of the customers in the CA, Oakland
+- Observe the time taken by the 3 queries on the 3 tables.
+
+- You will deliver a .txt file contains all commands and queries used during the task, and the time taken by the 3 queries.
+- The file should be named with your ID, commented for more readability.

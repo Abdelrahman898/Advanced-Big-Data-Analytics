@@ -1,0 +1,131 @@
+###################################################################################################################
+
+
+Name: Abdelrahman El-Nabawy Hammouda
+ID: 231002815
+
+
+###################################################################################################################
+Launch the Hive CLI.
+using the following command: /opt/hive/bin/hive
+###################################################################################################################
+Show databases.
+SHOW DATABASES;
+###################################################################################################################
+Create a Hive database.
+CREATE DATABASE cit650;
+###################################################################################################################
+Switch to the newly created database.
+USE cit650;
+###################################################################################################################
+Show tables of a database.
+SHOW TABLES;
+
+
+###################################################################################################################
+
+						REGULAR TABLE
+
+###################################################################################################################
+Create a Hive table with appropriate data types.
+CREATE EXTERNAL TABLE accounts_table (
+cust_id INT,
+creationdate STRING,
+expirationDate STRING,
+fname STRING,
+lname STRING,
+address STRING,
+city STRING,
+state STRING,
+zipcode STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+###################################################################################################################
+Put the data inside the table accounts_table .
+LOAD DATA LOCAL INPATH '/home/accounts' INTO TABLE accounts_table;
+###################################################################################################################
+Retrieve the names of the customers in the CA, Oakland
+SELECT fname, lname FROM accounts_table where city = 'Oakland' AND state = 'CA';
+
+###################################################################################################################
+					PARTITIONED TABLE FOR STATE
+###################################################################################################################
+Create a new table from the previous table partitioned by state
+
+SET hive.exec.dynamic.partition = true;
+SET hive.exec.dynamic.partition.mode = nonstrict;
+SET hive.exec.max.dynamic.partitions.pernode=400;
+
+
+CREATE EXTERNAL TABLE accounts_table_partitioned_by_state (
+cust_id INT,
+creationdate STRING,
+expirationDate STRING,
+fname STRING,
+lname STRING,
+address STRING,
+city STRING,
+zipcode STRING
+)
+PARTITIONED BY (state STRING)
+LOCATION '/user/hive/warehouse/cit650.db/accounts_table_partitioned_by_state';
+###################################################################################################################
+Put the data inside the table accounts_table_partitioned_by_state.
+
+LOAD DATA LOCAL INPATH '/home/accounts' INTO TABLE accounts_table_partitioned_by_state PARTITION (state);
+
+OR:
+
+INSERT OVERWRITE TABLE accounts_table_partitioned_by_state PARTITION (state)
+SELECT cust_id, creationdate, expirationDate, fname, lname, address, city, zipcode, state
+FROM accounts_table;
+
+###################################################################################################################
+Retrieve the names of the customers in the CA, Oakland
+
+SELECT fname, lname FROM accounts_table_partitioned_by_state where city = 'Oakland' AND state = 'CA';
+###################################################################################################################
+Get the first name and the last name of all customers from "NV" state
+
+SELECT fname, lname FROM accounts_table_partitioned_by_state where state = 'NV';
+
+
+
+###################################################################################################################
+
+				PARTITIONED TABLE FOR STATE, CITY
+
+###################################################################################################################
+Create a new table from the previous table partitioned by state
+
+SET hive.exec.dynamic.partition = true;
+SET hive.exec.dynamic.partition.mode = nonstrict;
+SET hive.exec.max.dynamic.partitions.pernode=400;
+
+
+CREATE EXTERNAL TABLE accounts_table_partitioned_by_state_and_city (
+cust_id INT,
+creationdate STRING,
+expirationDate STRING,
+fname STRING,
+lname STRING,
+address STRING,
+zipcode STRING
+)
+PARTITIONED BY (state STRING, city STRING)
+LOCATION '/user/hive/warehouse/cit650.db/accounts_table_partitioned_by_state_and_city';
+###################################################################################################################
+Put the data inside the table accounts_table_partitioned_by_state_and_city.
+
+
+INSERT OVERWRITE TABLE accounts_table_partitioned_by_state_and_city PARTITION (state, city)
+SELECT cust_id, creationdate, expirationDate, fname, lname, address, zipcode, state, city
+FROM accounts_table;
+
+###################################################################################################################
+Retrieve the names of the customers in the CA, Oakland
+
+SELECT fname, lname FROM accounts_table_partitioned_by_state_and_city where city = 'Oakland' AND state = 'CA';
+

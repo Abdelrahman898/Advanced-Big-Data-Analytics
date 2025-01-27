@@ -1,0 +1,128 @@
+Launch the Hive CLI.
+Once you’re inside the container, open the CLI of Hive using the following command: /opt/hive/bin/hive
+###################################################################################################################
+Show databases.
+SHOW DATABASES;
+###################################################################################################################
+Create a Hive database.
+CREATE DATABASE cit650;
+###################################################################################################################
+Switch to the newly created database.
+USE cit650;
+###################################################################################################################
+Show tables of a database.
+SHOW TABLES;
+###################################################################################################################
+Move the data file to the container using docker cp.
+docker cp auto-mpg.csv docker-hive-hive-server-1:/home
+###################################################################################################################
+Create a Hive table with appropriate data types.
+CREATE TABLE auto_mpg_table (
+  mpg DOUBLE,
+  cylinders INT,
+  displacement DOUBLE,
+  horsepower DOUBLE,
+  weight DOUBLE,
+  acceleration DOUBLE,
+  modelyear INT,
+  origin INT,
+  carname STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+###################################################################################################################
+Load data into the table.
+LOAD DATA LOCAL INPATH '/home/auto-mpg.csv' INTO TABLE auto_mpg_table;
+###################################################################################################################
+Describe the table structure.
+DESCRIBE FORMATTED auto_mpg_table;
+###################################################################################################################
+Verify the data in the table.
+SELECT * FROM auto_mpg_table LIMIT 10;
+###################################################################################################################
+Filtering using WHERE clause:
+SELECT * FROM auto_mpg_table WHERE mpg > 20;
+###################################################################################################################
+Aggregate using GROUP BY:
+SELECT cylinders, AVG(weight) AS avg_weight
+FROM auto_mpg_table
+GROUP BY cylinders;
+###################################################################################################################
+Aggregation with Filtering:
+SELECT AVG(acceleration) AS avg_acceleration
+FROM auto_mpg_table
+WHERE cylinders > 6;
+###################################################################################################################
+Grouping and Counting:
+SELECT modelyear, COUNT(*) AS car_count
+FROM auto_mpg_table
+GROUP BY modelyear;
+###################################################################################################################
+Sorting with ORDER BY:
+SELECT carname, mpg
+FROM auto_mpg_table
+ORDER BY mpg DESC;
+###################################################################################################################
+Partitioning by Year:
+
+SET hive.exec.dynamic.partition = true;
+SET hive.exec.dynamic.partition.mode = nonstrict;
+SET hive.exec.max.dynamic.partitions.pernode=400;
+
+CREATE EXTERNAL TABLE auto_mpg_partitioned_table (
+  mpg DOUBLE,
+  cylinders INT,
+  displacement DOUBLE,
+  horsepower DOUBLE,
+  weight DOUBLE,
+  acceleration DOUBLE,
+  origin INT,
+  carname STRING
+)
+PARTITIONED BY (modelyear INT)
+LOCATION '/user/hive/warehouse/cit650.db/auto_mpg_partitioned_table';
+
+INSERT OVERWRITE TABLE auto_mpg_partitioned_table PARTITION (modelyear)
+SELECT mpg, cylinders, displacement, horsepower, weight, acceleration, origin, carname, modelyear
+FROM auto_mpg_table;
+
+###################################################################################################################
+Bucketing for Acceleration:
+
+SET hive.exec.mode.local.auto.input.files.max=10;
+SET hive.enforce.bucketing = true;
+
+CREATE EXTERNAL TABLE auto_mpg_bucketed_table (
+  mpg DOUBLE,
+  cylinders INT,
+  displacement DOUBLE,
+  horsepower DOUBLE,
+  weight DOUBLE,
+  acceleration DOUBLE,
+  modelyear INT,
+  origin INT,
+  carname STRING
+)
+CLUSTERED BY (acceleration) INTO 5 BUCKETS
+LOCATION '/user/hive/warehouse/cit650.db/auto_mpg_bucketed_table';
+
+INSERT OVERWRITE TABLE auto_mpg_bucketed_table
+SELECT * FROM auto_mpg_table;
+###################################################################################################################
+Subquery with IN:
+SELECT carname, mpg
+FROM auto_mpg_table
+WHERE modelyear IN (SELECT DISTINCT modelyear FROM auto_mpg_table WHERE cylinders = 6);
+###################################################################################################################
+Conditional Aggregation with CASE:
+SELECT origin,
+       AVG(CASE WHEN cylinders = 4 THEN weight ELSE NULL END) AS avg_weight_4_cyl,
+       AVG(CASE WHEN cylinders = 6 THEN weight ELSE NULL END) AS avg_weight_6_cyl,
+       AVG(CASE WHEN cylinders = 8 THEN weight ELSE NULL END) AS avg_weight_8_cyl
+FROM auto_mpg_table
+GROUP BY origin;
+###################################################################################################################
+Date Transformation - Convert Model Year to Production Year:
+SELECT carname, modelyear, (1900 + modelyear) AS production_year
+FROM auto_mpg_table;
